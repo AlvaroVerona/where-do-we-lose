@@ -1,0 +1,42 @@
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+.eggs/
+build/
+dist/
+
+# Virtual environments
+.venv/
+venv/
+env/
+
+# Jupyter
+.ipynb_checkpoints/
+
+# Data (generated, not committed)
+data/raw/*.csv
+data/processed/*.csv
+!data/raw/.gitkeep
+!data/processed/.gitkeep
+
+# Models (generated, not committed)
+models/*.joblib
+!models/.gitkeep
+
+# Reports (generated figures, not committed)
+reports/figures/*
+!reports/figures/.gitkeep
+
+# OS / editor
+.DS_Store
+.vscode/
+.idea/
+
+# Env / secrets
+.env
+
+# Testing
+.pytest_cache/
+.coverage
+htmlcov/
