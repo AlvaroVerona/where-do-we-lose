@@ -12,7 +12,10 @@
 ![SHAP](https://img.shields.io/badge/SHAP-0.46%2B-8A2BE2)
 ![OR--Tools](https://img.shields.io/badge/OR--Tools-9.10%2B-4285F4)
 ![Streamlit](https://img.shields.io/badge/Streamlit-1.36%2B-FF4B4B)
-![pytest](https://img.shields.io/badge/tests-90%20passing-brightgreen)
+[![CI](https://github.com/AlvaroVerona/where-do-we-lose/actions/workflows/ci.yml/badge.svg)](https://github.com/AlvaroVerona/where-do-we-lose/actions/workflows/ci.yml)
+![License](https://img.shields.io/badge/license-MIT-green)
+
+**[Live demo](https://where-do-we-lose.streamlit.app/)**
 
 ---
 
@@ -173,36 +176,35 @@ just the single largest one. Full comparison: `reports/scenario_comparison.csv`.
 ## Installation
 
 ```bash
-git clone <repository-url>
-cd process-bottleneck-optimization
+git clone https://github.com/AlvaroVerona/where-do-we-lose.git
+cd where-do-we-lose
 
 python -m venv .venv
 source .venv/bin/activate          # Windows: .venv\Scripts\activate
 
-pip install -r requirements.txt
+pip install -e ".[dev]"
 
-# Generate the synthetic dataset (~13s for 50,000 applications)
+# Launch the dashboard. On first run it generates the synthetic dataset
+# (~15s) and trains the model by itself, then everything is cached.
+streamlit run app/app.py
+
+# Or run each stage yourself
 python -m src.data.generate_data --n-processes 50000 --seed 42
-
-# Run the full test suite (90 tests, ~15s)
-pytest
-
-# Train the SLA-breach model and precompute the optimization scenarios
-# (needed once, before the dashboard's Delay Prediction / Optimization pages work)
 python -m src.models.train
 python -m src.optimization.resource_allocation
 
-# Launch the dashboard
-streamlit run app/app.py
+# Run the full test suite (90 tests)
+pytest
 ```
 
-Or, equivalently: `make install`, `make generate-data`, `make test`,
-`make train`, `make optimize`, `make dashboard`.
+Or, equivalently: `make install`, `make generate-data`, `make train`,
+`make optimize`, `make test`, `make dashboard`.
 
-To reproduce the notebooks, register the venv as a Jupyter kernel and run
-them in order (01 → 04):
+To reproduce the notebooks, install the extra dependencies, register the venv
+as a Jupyter kernel and run them in order (01 → 04):
 
 ```bash
+pip install -e ".[notebooks]"
 python -m ipykernel install --user --name process-bottleneck-venv
 jupyter nbconvert --to notebook --execute --inplace \
     --ExecutePreprocessor.kernel_name=process-bottleneck-venv \
@@ -212,7 +214,7 @@ jupyter nbconvert --to notebook --execute --inplace \
 ## Project Structure
 
 ```text
-process-bottleneck-optimization/
+where-do-we-lose/
 ├── data/
 │   ├── raw/                    # generated process_instances.csv, event_log.csv
 │   └── README.md               # full data-generation methodology & business rules

@@ -11,6 +11,9 @@ from __future__ import annotations
 
 from pathlib import Path
 
+import subprocess
+import sys
+
 import pandas as pd
 import streamlit as st
 
@@ -23,15 +26,39 @@ from src.process_mining.event_log import load_event_log, load_process_instances
 DATA_DIR = Path(__file__).resolve().parents[2] / "data" / "raw"
 MODEL_PATH = Path(__file__).resolve().parents[2] / "models" / "delay_prediction_model.joblib"
 REPORTS_DIR = Path(__file__).resolve().parents[2] / "reports"
+ROOT = Path(__file__).resolve().parents[2]
+
+# (artifact that must exist, module that produces it). Same commands as `make
+# generate-data / train / optimize`, with their default arguments (50,000 applications, seed 42).
+_ARTIFACT_STEPS = [
+    (DATA_DIR / "event_log.csv", "src.data.generate_data"),
+    (MODEL_PATH, "src.models.train"),
+    (REPORTS_DIR / "scenario_comparison.csv", "src.optimization.resource_allocation"),
+]
+
+
+@st.cache_resource(show_spinner="First run: generating the dataset and training the model (about a minute)...")
+def ensure_artifacts() -> None:
+    """Build any missing generated artifact (data, model, scenario reports).
+
+    The data and model are gitignored, so a fresh clone or a hosted deployment has
+    none of them. Running the pipeline stages on first use makes the dashboard work
+    out of the box; with everything already in place this does nothing.
+    """
+    for artifact, module in _ARTIFACT_STEPS:
+        if not artifact.exists():
+            subprocess.run([sys.executable, "-m", module], cwd=ROOT, check=True)
 
 
 @st.cache_data(show_spinner="Loading process data...")
 def get_process_instances() -> pd.DataFrame:
+    ensure_artifacts()
     return load_process_instances(DATA_DIR / "process_instances.csv")
 
 
 @st.cache_data(show_spinner="Loading event log...")
 def get_event_log() -> pd.DataFrame:
+    ensure_artifacts()
     return load_event_log(DATA_DIR / "event_log.csv")
 
 
@@ -42,6 +69,7 @@ def get_bottleneck_table() -> pd.DataFrame:
 
 @st.cache_resource(show_spinner="Loading prediction model...")
 def get_model():
+    ensure_artifacts()
     return load_model(MODEL_PATH)
 
 
@@ -52,6 +80,7 @@ def get_explainer():
 
 @st.cache_data(show_spinner=False)
 def get_scenario_comparison() -> pd.DataFrame | None:
+    ensure_artifacts()
     path = REPORTS_DIR / "scenario_comparison.csv"
     if not path.exists():
         return None
@@ -60,6 +89,7 @@ def get_scenario_comparison() -> pd.DataFrame | None:
 
 @st.cache_data(show_spinner=False)
 def get_optimized_staffing() -> pd.DataFrame | None:
+    ensure_artifacts()
     path = REPORTS_DIR / "optimized_staffing.csv"
     if not path.exists():
         return None
