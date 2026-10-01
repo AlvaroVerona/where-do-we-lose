@@ -1,7 +1,7 @@
 .PHONY: install generate-data test train optimize dashboard clean
 
 install:
-	pip install -r requirements.txt
+	pip install -e ".[dev]"
 
 generate-data:
 	python -m src.data.generate_data --n-processes 50000 --seed 42
